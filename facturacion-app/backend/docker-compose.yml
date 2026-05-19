@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: facturacion_db
+    environment:
+      POSTGRES_USER: facturacion_user
+      POSTGRES_PASSWORD: facturacion_pass
+      POSTGRES_DB: facturacion_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - facturacion_network
+    restart: unless-stopped
+
+  backend:
+    build: .
+    container_name: facturacion_backend
+    environment:
+      DATABASE_URL: postgresql://facturacion_user:facturacion_pass@postgres:5432/facturacion_db
+      PORT: 3000
+      JWT_SECRET: tu_secreto_muy_seguro_cambialo_en_produccion
+      NODE_ENV: production
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres
+    networks:
+      - facturacion_network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+networks:
+  facturacion_network:
+    driver: bridge
